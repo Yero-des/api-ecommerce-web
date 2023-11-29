@@ -1,4 +1,5 @@
 const userSchema = require('../models/user');
+const bcrypt = require('bcrypt');
 
 const userController = {}
 
@@ -13,14 +14,46 @@ userController.listUser = async (req, res) => {
 
 };
 
-userController.createUser = async (req, res) => {
+userController.registerUser = async (req, res) => {
  
   try {
-    const user = userSchema(req.body);
-    await user.save();
-    res.json({ message: "Nuevo usuario agregado!" });
+    
+    const { name, last_name, email, username, password, repeat_password} = req.body    
+
+    if (password == repeat_password) {
+
+      // Encriptar contraseña
+      const hashed = await bcrypt.hash(password, 10);
+
+      // Agregar nuevo usuario
+      const user = userSchema({
+        name: name, 
+        last_name: last_name,
+        email: email, 
+        username: username,
+        password: hashed.toString()
+      });
+
+      await user.save();
+
+      return res.json({ create: true, message: "Nuevo usuario agregado!", user: user});
+      
+    } else {
+      return res.json({ create: false, message: 'Las contraseñas no coinciden'});
+    }
+
   } catch (err) {
-    res.json({ message: err });
+    res.json({ create: false, message: err });
+  }
+
+};
+
+userController.loginUser = async (req, res) => {
+
+  try {
+
+  } catch (err) {
+
   }
 
 };
