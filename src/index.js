@@ -2,13 +2,17 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const userRoutes = require('./routes/user');
+const productRoutes = require('./routes/product');
+const path = require('path');
 
 const app = express()
-const port = process.env.PORT || 9000;
+const port = 9000 || process.env.APP_PORT;
 
 // Middleware
 app.use(express.json());
 app.use('/api', userRoutes)
+app.use('/api', productRoutes)
+app.use('/public', express.static(path.join(__dirname, '/storage/img')));
 
 // Conexion with MongoDB
 mongoose.connect(process.env.MONGODB_URI)
