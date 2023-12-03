@@ -13,19 +13,24 @@ const userSchema = mongoose.Schema({
   shopping_car: {
 
     total: {type: Number, required: true, default: 0},
-    subtotal: {type: Number, required: true, default: 0},
+    cantidad: {type: Number, required: true, default: 0},
 
     products: [
       {
         product: {type: String, required: true},
+        brand: {type: String, required: true},
+        category: {type: String, required: true},
         price: {type: Number, required: true},
-        description: {type: String, required: false},
-        image: {type: String, required: false}
+        img: {type: String, required: true},
+        filename: {type: String, required: true},
+        cantidad: {type: Number, required: true},
       }
     ]
 
   }
 })
+
+
 
 module.exports = mongoose.model('user', userSchema);
 

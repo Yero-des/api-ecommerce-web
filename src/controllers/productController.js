@@ -78,7 +78,7 @@ productController.addProduct = async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ delete: false, message: 'Error interno del servidor'});
+    return res.status(500).json({ create: false, message: 'Error interno del servidor'});
   }
 
 }
@@ -93,7 +93,9 @@ productController.updateProduct = async (req, res) => {
     if (price < 0) {
       // Eliminar archivo (error)
       if (req.file && req.file.path) {
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
       }
       return res.json({ create: false, message: 'El precio no puede ser negativo' });
     }
@@ -101,7 +103,9 @@ productController.updateProduct = async (req, res) => {
     if (!ObjectId.isValid(id)) {
       // Eliminar archivo (error)
       if (req.file && req.file.path) {
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
       }
       return res.json({ find: false, message: 'Producto no encontrado'});
     } 
@@ -111,7 +115,9 @@ productController.updateProduct = async (req, res) => {
     if (!productBefore) {
       // Eliminar archivo (error)
       if (req.file && req.file.path) {
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
       }
       return res.json({ update: false, message: 'Producto no encontrado' });
     }
@@ -133,13 +139,15 @@ productController.updateProduct = async (req, res) => {
       // Llamar al path del proyecto
       const imagePath = path.join(__dirname, '../storage/img', productBefore.filename);
 
-      // Eliminar imagen del servidor
-      fs.unlink(imagePath, (err) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ delete: false, message: 'Error interno del servidor'});
-        }
-      })
+      if (fs.existsSync(imagePath)) {
+        // Eliminar imagen del servidor
+        fs.unlink(imagePath, (err) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).json({ delete: false, message: 'Error interno del servidor'});
+          }
+        })
+      }
 
     }    
 
@@ -172,12 +180,18 @@ productController.deleteProduct = async (req, res) => {
     const imagePath = path.join(__dirname, '../storage/img', product.filename);
 
     // Eliminar imagen del servidor
-    fs.unlink(imagePath, (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ delete: false, message: 'Error interno del servidor'});
-      }
-    })
+    if (fs.existsSync(imagePath)) {
+      // Eliminar imagen del servidor
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ delete: false, message: 'Error interno del servidor' });
+        }
+    
+        // Resto de tu lógica después de eliminar la imagen
+        return res.json({ delete: true, message: 'Imagen eliminada correctamente' });
+      });
+    }
 
     return res.json({ find: true, message: `Producto ${product.product} eliminado correctamente` });
 
