@@ -6,8 +6,8 @@ const productSchema = mongoose.Schema({
   brand: {type: String, required: true},
   category: {type: String, required: true},
   price: {type: Number, required: true},
-  img: {type: String, required: true},
-  filename: {type: String, required: true}
+  img: {type: String, required: false},
+  filename: {type: String, required: false}
 })
 
 productSchema.methods.setImgUrl = function setImgUrl(filename) {  
