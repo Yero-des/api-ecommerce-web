@@ -4,6 +4,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const userRoutes = require('./routes/user');
 const productRoutes = require('./routes/product');
+const cartRoutes = require('./routes/car');
 const path = require('path');
 
 const app = express()
@@ -14,6 +15,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/api', userRoutes)
 app.use('/api', productRoutes)
+app.use('/api', cartRoutes)
 app.use('/public', express.static(path.join(__dirname, '/storage/img')));
 
 // Conexion with MongoDB

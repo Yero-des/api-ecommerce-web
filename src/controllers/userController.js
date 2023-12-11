@@ -19,7 +19,7 @@ userController.registerUser = async (req, res) => {
  
   try {
     
-    const { name, last_name, email, username, password, repeat_password} = req.body    
+    const { name, last_name, email, username, password, repeat_password, admin} = req.body    
     const existingUser = await userSchema.findOne({ username: username });
 
     if (existingUser) {
@@ -30,8 +30,8 @@ userController.registerUser = async (req, res) => {
       return res.json({ create: false, message: 'Las contraseñas no coinciden'});      
     } 
 
-    if (!/^(?=.*\d)/.test(password)) {
-      return res.json({ create: false, message: 'Las contraseñas deben incluir al menos un número'})
+    if (!/\d/.test(password)) {
+      return res.json({ create: false, message: 'La contraseña debe incluir al menos un número' });
     }
 
     if (!/^.{9,}$/.test(password)) {
@@ -48,7 +48,8 @@ userController.registerUser = async (req, res) => {
       last_name: last_name,
       email: email, 
       username: username,
-      password: hashed.toString()
+      password: hashed.toString(),
+      admin: admin || false
     });
 
     await user.save();
@@ -63,33 +64,29 @@ userController.registerUser = async (req, res) => {
 
 };
 
+// userController.js
 userController.loginUser = async (req, res) => {
-
   try {
-
-    const { username, password } = req.params;
+    const { username, password } = req.body; // Cambiado a req.body
 
     const existingUser = await userSchema.findOne({ username: username });
 
     if (!existingUser) {
-      return res.json({ login: false, message: "No se encontro el usuario" });      
+      return res.json({ login: false, message: "Usuario no encontrado" });
     }
 
     // Comparar contraseñas
     const passwordMatch = await bcrypt.compare(password, existingUser.password);
 
     if (!passwordMatch) {
-      return res.json({ login: false, admin: existingUser.admin, message: "La contraseña es incorrecta" })
+      return res.json({ login: false, admin: existingUser.admin, message: "Contraseña incorrecta" });
     }
-    
-    return res.json({ login: true, user: existingUser.username, message: "Inicio de sesion correcto!" });      
 
-
+    return res.json({ login: true, user: existingUser.username, message: "Inicio de sesión correcto" });
   } catch (err) {
     console.error(err);
-    return res.json({ login: false, message: err });
+    return res.status(500).json({ login: false, message: "Error interno del servidor" });
   }
-
 };
 
 userController.findUserByUsername = async (req, res) => {
@@ -170,5 +167,23 @@ userController.removeUser = async (req, res) => {
   }
 
 }
+
+userController.findUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await userSchema.findById(id);
+
+    if (!user) {
+      return res.json({ found: false, message: 'Usuario no encontrado' });
+    }
+    
+    return res.json({ found: true, user: user, message: 'Usuario encontrado con éxito' });
+    
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ found: false, message: 'Error interno del servidor' });
+  }
+};
+
 
 module.exports = userController;

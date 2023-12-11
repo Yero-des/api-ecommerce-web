@@ -78,7 +78,7 @@ productController.addProduct = async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ delete: false, message: 'Error interno del servidor'});
+    return res.status(500).json({ create: false, message: 'Error interno del servidor'});
   }
 
 }
@@ -93,7 +93,9 @@ productController.updateProduct = async (req, res) => {
     if (price < 0) {
       // Eliminar archivo (error)
       if (req.file && req.file.path) {
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
       }
       return res.json({ create: false, message: 'El precio no puede ser negativo' });
     }
@@ -101,7 +103,9 @@ productController.updateProduct = async (req, res) => {
     if (!ObjectId.isValid(id)) {
       // Eliminar archivo (error)
       if (req.file && req.file.path) {
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
       }
       return res.json({ find: false, message: 'Producto no encontrado'});
     } 
@@ -111,7 +115,9 @@ productController.updateProduct = async (req, res) => {
     if (!productBefore) {
       // Eliminar archivo (error)
       if (req.file && req.file.path) {
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
       }
       return res.json({ update: false, message: 'Producto no encontrado' });
     }
@@ -133,13 +139,15 @@ productController.updateProduct = async (req, res) => {
       // Llamar al path del proyecto
       const imagePath = path.join(__dirname, '../storage/img', productBefore.filename);
 
-      // Eliminar imagen del servidor
-      fs.unlink(imagePath, (err) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ delete: false, message: 'Error interno del servidor'});
-        }
-      })
+      if (fs.existsSync(imagePath)) {
+        // Eliminar imagen del servidor
+        fs.unlink(imagePath, (err) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).json({ delete: false, message: 'Error interno del servidor'});
+          }
+        })
+      }
 
     }    
 
@@ -157,36 +165,42 @@ productController.updateProduct = async (req, res) => {
 }
 
 productController.deleteProduct = async (req, res) => {
-
   try {
-
     const { id } = req.params;
     if (!ObjectId.isValid(id)) return res.json({ find: false, message: 'Producto no encontrado'});
     
-    product = await productSchema.findById(id);
-    response = await productSchema.deleteOne({ _id: id });
+    const product = await productSchema.findById(id);
+    const response = await productSchema.deleteOne({ _id: id });
 
-    if (response.deletedCount === 0) return res.json({ find: false, message: 'Producto no encontrado'});
+    if (response.deletedCount === 0) return res.json({ find: false, message: 'Producto no encontrado' });
 
     // Llamar al path del proyecto
     const imagePath = path.join(__dirname, '../storage/img', product.filename);
 
     // Eliminar imagen del servidor
-    fs.unlink(imagePath, (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ delete: false, message: 'Error interno del servidor'});
-      }
-    })
+    if (fs.existsSync(imagePath)) {
+      // Utilizar una promesa para esperar a que fs.unlink se complete
+      await new Promise((resolve, reject) => {
+        fs.unlink(imagePath, (err) => {
+          if (err) {
+            console.error(err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+    }
 
+    // Resto de tu lógica después de la comprobación de existencia del archivo
     return res.json({ find: true, message: `Producto ${product.product} eliminado correctamente` });
 
   } catch (err) {
     console.error(err);
     return res.status(500).json({ delete: false, message: 'Error interno del servidor'});
   }
+};
 
-}
 
 
 module.exports = productController

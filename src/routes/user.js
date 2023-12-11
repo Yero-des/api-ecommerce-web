@@ -14,7 +14,15 @@ router.post('/users/create', (req, res) => {
   userController.registerUser(req, res);
 });
 
-router.post('/users/login/:username/:password', (req, res) => {
+router.get('/users/:id',(req,res)=>{
+  userController.findUserById(req,res)
+} );
+
+/*router.post('/users/login/:username/:password', (req, res) => {
+  userController.loginUser(req, res);
+});*/
+// router.js
+router.post('/users/login', (req, res) => {
   userController.loginUser(req, res);
 });
 
